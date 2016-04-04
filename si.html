@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--<link href="style.css" rel="stylesheet">-->
+        <link rel="apple-touch-icon" href="news.png">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="red">
+        <meta name="viewport" content="width=device-width">
+        <script src="jquery-2.1.0.min.js"></script>
+        <script src="Chart.js"></script>
+        <title>News</title>
+        
+        <script>
+            $(document).on ('ready', function(){
+                var data = [
+                                {
+                                    value : 10,
+                                    color: "#D97041"
+                                },
+                                {
+                                    value : 2,
+                                    color: "#C7604C"
+                                },
+                                {
+                                    value : 6,
+                                    color: "#21323D"
+                                },
+                                {
+                                    value : 5,
+                                    color: "#9D9B7F"
+                                },
+                                {
+                                    value : 3,
+                                    color: "#7D4F6D"
+                                },
+                                {
+                                    value : 8,
+                                    color: "#584A5E"
+                                }
+                            ]
+                var ctx=document.getElementById("mysisterpie").getContext("2d");
+                var newchart=new Chart(ctx).PolarArea(data,{
+                                            scaleOverride:true,
+                                            scaleOverlay:true,
+                                            scaleSteps:5,
+                                            scaleStepWidth:2,
+                                            scaleStartValue:0
+                                            
+                });
+                
+            });
+        </script>
+        <style>
+            .divclass {
+                border-radius: 190%;
+                }
+            .type {
+                width: 400px;
+                height: 400px;
+                background: #26e8f8;
+                border: 3px solid red;
+            }
+        </style>
+
+    </head>
+    <body style='background-color:#aaa'>
+        <div class="divclass type">
+        <canvas id="mysisterpie" width="400" height="400"></canvas>
+        </div>
+        <div data-role="page" id="newpage">
+            <h2>This is just a test</h2>
+            <p>Just Testing to see how it works</p>
+        </div>
+    </body>
+    
+</html>

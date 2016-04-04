@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>News</title>
+        <meta charset="UTF-8">
+        <!--<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css">-->
+        <!--<link href="style.css" rel="stylesheet">-->
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="red">
+        <meta name="viewport" content="width=device-width">
+        <link rel="apple-touch-icon" href="news.png">
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css" />
+        <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+        
+        <script>
+            $(document).on ('ready', function(){
+                $("#citylocation").on('click', '> li', function(){
+                    //var selected_index=$(this).index();
+                    var info=$(this).attr('data-name');
+                    var content=$(this).text();
+                    console.log('just HERE:'+$(this).text());
+                    $("#citylocation").prev().find('input').val(content);
+                    $("#citylocation").html("");
+                });
+                $('#clocation').on ('click', function(){
+                    $( ":mobile-pagecontainer" ).pagecontainer( "change", "#newpage", { transition:'flip', 
+                                                                                          changeHash:false, 
+                                                                                          reverse:true, 
+                                                                                          showLoadMsg:true});
+                    var url="https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20rss%20where%20url%20%3D%20'http%3A%2F%2Fnews.google.com%2Fnews%3Fgeo%3D02138%26output%3Drss'&format=json&diagnostics=true&callback=";
+                    $.getJSON(url,function(data){
+                              console.log(data);
+                    });    
+                });
+                $('#customlocation').on ('submit', function(){
+
+                    if (!$('#zipcode').val() && (!$('#city').val()||!$('#state').val())){
+                        alert('Please provide complete Information');
+                        return false;
+                    }
+                    else if($('#zipcode').val()){
+                        var zipcode=$('#zipcode').val();
+                        var zipurl="http://maps.googleapis.com/maps/api/geocode/json?address="+zipcode+"&sensor=true";
+                        $.ajax({
+                            url:zipurl,
+                            type:'GET',
+                            dataType:'json',
+                            error: function(){alert('Server Error'); return;},
+                            success:function(result){
+                                if (result.status === "ZERO_RESULTS"){
+                                    alert('Invalid Zip Code');
+                                    return;
+                                }
+                                $( ":mobile-pagecontainer" ).pagecontainer( "change", "#newpage", { transition:'flip', 
+                                                                                                    changeHash:false, 
+                                                                                                    reverse:true, 
+                                                                                                    showLoadMsg:true});  
+                                console.log(result);
+                            }
+                        });
+                    }
+                    else{
+                        var city=$('#city').val();
+                        var state=$('#state').val();
+                        console.log(zipcode, city, state);
+                        $( ":mobile-pagecontainer" ).pagecontainer( "change", "#newpage", { transition:'flip', 
+                                                                                          changeHash:false, 
+                                                                                          reverse:true, 
+                                                                                          showLoadMsg:true});
+                        //console.log(zipcode, city, state);
+                        return false;
+                    }
+                    return false;
+
+                });
+            });
+            $(document).on("pagecreate", "#main", function(){
+                $("#citylocation").on("filterablebeforefilter", function(e,data){
+                    var $ul=$(this),
+                        $input=$(data.input),
+                        city=$input.val(),
+                        html="";
+                    $ul.html("");
+                    if(city && city.length >2){
+                        $ul.html("<li><div class='ui-loader'><span class='ui-icon ui-icon-loading'></span></div></li>");
+                        $ul.listview("refresh");
+                        $.ajax({
+                            url:"http://gd.geobytes.com/AutoCompleteCity",
+                            type:'GET',
+                            dataType:"jsonp",
+                            crossDomain:true,
+                            data:{
+                                q:$input.val()
+                            }     
+                        })
+                        .then(function (response){
+                            $.each(response, function (i,val){
+                                html += '<li data-icon="location" data-name="'+val+'"><a data-transition="side" href="#" id="'+i+'">'+val+'</a></li>';
+                                var sp=val.toString().split(",");
+                                console.log(sp[1],i);
+                            });
+                            $ul.html(html);
+                            $ul.listview("refresh");
+                            $ul.trigger("updatelayout");
+                        });
+                    }
+                });
+            });
+/*            
+            $("#customdata").children("lu").children("li").bind("mousedown touchstart", function(event){
+                                alert('Here');
+                                console.log('You selected child...'+$(this).attr("data-name"));
+            });
+*/            
+        </script>
+        
+        <style type=text/css>
+            .ui-collapsible {margin : 0px 0px;}
+            .ui-filter-inset {margin-top: 0;}
+        </style>
+        
+<!--        
+           <style type=text/css>
+
+            .ui-btn-inner {
+
+            padding : 25px;
+
+            background-color : black;
+            
+            }
+
+            .ui-btn-text {
+
+            font-size : 25px;
+
+            color : white;
+
+            }
+
+            </style>
+   -->     
+    </head>
+    <body style="border:0">
+     <!--   <div data-role="page" id="main-menu">-->
+        <div data-role="page" id="main">
+            <div data-role="header" data-content-theme="b">
+                <h1>News~Weather</h1>
+            </div>
+            <div data-role="content">
+                <div data-role="collapsible" data-theme="a" id="customdata" data-content-theme="a" data-collapsed="false">
+                    <h3>Customized location</h3>
+                    <form id="customlocation" action="">
+                        Zip code:<input type="text" style="height:5px;" maxlength="5" id="zipcode">
+                        <h6 style="text-align:center;height:10px;">OR</h6>
+                        <ul id="citylocation" data-role="listview" data-inset="false" data-filter="true" data-filter-placeholder="Find a city..." data-enhanced="true" value="tampa" data-filter-theme="a"></ul><br>
+                        <!--City:<input type="text" style="height:5px;" id="city"><br>-->
+                        <!--State:<input type="text" style="height:5px;" id="state"><br>-->
+ <!--                       <label for="state" class="select">State:</label>
+						<select name="shipping" id="shipping">
+							<option value="AL">Alabama</option>
+							<option value="AK">Alaska</option>
+							<option value="AZ">Arizona</option>
+							<option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                            <option value="CO">Colorado</option>
+                            <option value="CT">Conneticut</option>
+                            <option value="DE">Delaware</option>
+                            <option value="FL">Florida</option>
+                            <option value="GA">Georgia</option>
+                            <option value="HI">Hawaii</option>
+                            <option value="ID">Idaho</option>
+                            <option value="IL">Illinois</option>
+                            <option value="IN">Indiana</option>
+                            <option value="IA">Iowa</option>
+                            <option value="KS">Kansas</option>
+                            <option value="KY">Kentucky</option>
+                            <option value="LA">Louisiana</option>
+                            <option value="ME">Maine</option>
+                            <option value="MD">Maryland</option>
+                            <option value="MA">Massachisetts</option>
+                            <option value="MI">Michigan</option>
+                            <option value="MN">Minnesota</option>
+                            <option value="MS">Mississippi</option>
+                            <option value="MO">Missouri</option>
+                            <option value="MT">Montana</option>
+                            <option value="NE">Nebraska</option>
+                            <option value="NV">Nevada</option>
+                            <option value="NH">New Hampshire</option>
+                            <option value="NJ">New Jersey</option>
+                            <option value="NM">New Mexico</option>
+                            <option value="NY">New York</option>
+                            <option value="NC">North Carolina</option>
+                            <option value="ND">North Dakota</option>
+                            <option value="OH">Ohio</option>
+                            <option value="OK">Oklahoma</option>
+                            <option value="OR">Oregon</option>
+                            <option value="PA">Pennsylvania</option>
+                            <option value="RI">Rhode Island</option>
+                            <option value="SC">South Carolina</option>
+                            <option value="SD">South Dakota</option>
+                            <option value="TN">Tennessee</option>
+                            <option value="TX">Texas</option>
+                            <option value="UT">Utah</option>
+                            <option value="VT">Vermont</option>
+                            <option value="VA">Virginia</option>
+                            <option value="WA">Washington</option>
+                            <option value="WV">West Virginia</option>
+                            <option value="WI">Wisconsin</option>
+                            <option value="WY">Wyoming</option>
+						</select>
+-->
+                        <!--State:<input type="text" style="height:5px;" id="state"><br>-->
+                    <!-- <a href="#news-weather" data-transition="flip">-->
+                        <button type="submit" href="#news-weather" data-corners="false">Get News~Weather</button> 
+                    <!--</a>-->
+                    </form>
+                </div>
+           <!-- <a href="#news-weather" data-transition="pop">-->
+                <button type="submit" href="#news-weather" id="clocation" data-corners="false" data-theme="a">Use Current Location</button> 
+            <!--</a>-->
+            </div>
+        </div>
+        
+        <div data-role="page" id="newpage">
+            <div data-role="header">
+                <h1>Something</h1>
+                <div data-role="content">   
+                    <ul data-role="listview" data-theme="c">
+                        <li><a href="#">Lecture 0</a></li>
+                        <li><a href="#">Lecture 1</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+            <!--
+            <div data-role="content">
+                <ul ul data-role="listview" data-theme="c">
+                <li><a >Local</a></li>
+                <li><a >Chose location</a></li>
+                </ul>
+            </div>
+        </div>
+        Hello!
+        -->
+        <!--<img alt="placesicon" src="places.png">-->
+    </body>
+</html>

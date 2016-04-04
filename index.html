@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Staff's Choice</title>
+        <!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js">
+</script>-->
+        <script src="jquery-2.1.0.min.js"></script>
+            <script>
+                $(document).on ('ready', function(){
+                    $("#myform").on ('submit', function(){
+                        //1. Get text from the text field
+                        var zipcode = $("#mytext").val();
+                        //2. sent the zipcode to the google API
+                        var url="http://maps.googleapis.com/maps/api/geocode/json?address="+zipcode+"&sensor=true";
+                        $.getJSON(url,function(data){
+                            if (data.status === "ZERO_RESULTS"){
+                                alert('Invalid Zip Code');
+                                return;
+                            }
+                            var components=data.results[0].address_components;
+                            //var city=null;//components[1].short_name;
+                            //var state=null;//components[2].short_name;
+                            for(var i=0;i<components.length;i++){
+                                var comp=components[i];
+                                console.log(comp);
+                                //city
+                                if(comp.types.indexOf("locality")!==-1){
+                                    var city=comp.long_name;
+                                    console.log(comp.long_name);
+                                   }
+                                //state
+                                else if(comp.types.indexOf("administrative_area_level_1")!==-1){
+                                    var state=comp.short_name;
+                                    console.log(comp.short_name);
+                                }
+                            }
+                            if(typeof city==='undefined' || typeof state==='undefined'){
+                                    alert('City and State not found');
+                                    return;
+                                }
+
+                            $("#mydiv").text(city+', '+state);
+                            //console.log(city,state);
+                        });
+                        //2. paste the text to the div 
+                        //$("#mydiv").text(zipcode)
+                        return false;
+                    });
+                });
+            </script>
+        
+            <script>
+                $(document).on('ready', function(){
+                    $("#Geolocate-button").on('click', function(){
+                       navigator.geolocation.getCurrentPosition(function(position){
+                           var lat=position.coords.latitude;
+                           var lng=position.coords.longitude;
+                           var url="http://maps.googleapis.com/maps/api/geocode/json?latlng="+lat+','+lng+"&sensor=true";
+                           $.getJSON(url,function(data){
+                                if (data.status === "ZERO_RESULTS"){
+                                alert('Invalid Zip Code');
+                                return;
+                                }
+                                console.log(data);
+                                var components=data.results[0].address_components;
+
+                                for(var i=0;i<components.length;i++){
+                                    var comp=components[i];
+                                    //city
+                                    if(comp.types.indexOf("locality")!==-1){
+                                        var city=comp.long_name;
+                                        //console.log(comp.long_name);
+                                    }
+                                    //County
+                                    else if(comp.types.indexOf("administrative_area_level_2")!==-1){
+                                        var county=comp.short_name;
+                                        //console.log(comp.short_name);
+                                    }                                    
+                                    //state
+                                    else if(comp.types.indexOf("administrative_area_level_1")!==-1){
+                                        var state=comp.short_name;
+                                        //console.log(comp.short_name);
+                                    }
+                                }
+                               
+                                if(typeof city==='undefined' || typeof state==='undefined'||typeof county==='undefined'){
+                                    alert('City, State and County not found');
+                                    return;
+                                }
+                               $("#city-state").text(city+', '+county+', '+state);
+                           });
+                       }); 
+                    });
+                });
+            </script>
+        
+    <script>
+        $(document).on ('ready', function(){
+            if(typeof localStorage !== 'undefined'){
+                if (typeof localStorage.divtext !== 'undefined'){
+            $("#AppendDiv").html(localStorage.divtext);
+                }
+            }
+            else{
+                alert('get a newer browser or turn Java on!');
+            }
+            $("#AppendForm").on ('submit', function(){
+                var boxtext=$("#AppText").val();
+                $("#AppendDiv").append(boxtext + '<br>');
+                var alltext=$("#AppendDiv").html();
+                localStorage.divtext=alltext;
+                return false;
+            });
+        });    
+    </script>
+    </head>
+<body>
+    <form id="myform">
+        Text Input:<input type="text" id="mytext"><input type="submit" value="Submit">
+        
+    </form>
+    <div style="color:#0000FF" id="mydiv">
+        div!!
+    </div>
+    <button id="Geolocate-button">Use Current Location!</button>
+    <div style="border:#ff0027" id="city-state">
+        div!!
+    </div>
+    
+    <form id="AppendForm">
+        Text Input:<input type="text" id="AppText"><input type="submit" value="Append">
+    </form>
+    <div style="color:#06861c" id="AppendDiv">
+        <!--div!-->
+    </div>
+</body>
+</html>
